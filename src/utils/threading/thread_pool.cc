@@ -2,22 +2,22 @@
 // Created by hudong on 4/23/15.
 //
 
-#include "thread_pool.h"
+#include "utils/threading/thread_pool.h"
+
+namespace utils {
+namespace threading {
 
 ThreadPool::~ThreadPool() {
-  for (int i = 0; i < core_size_; ++i) {
-    delete threads[i];
-  }
 }
 
 void ThreadPool::Start() {
-  threads.resize(core_size_);
-
   for (int i = 0; i < core_size_; ++i) {
-    // Caution: please check null pointers.
-    Delegate *delegate = new Delegate(this);
-    std::thread *work_thread = new std::thread(*delegate);
+    Delegate delegate(this);
+    std::shared_ptr<std::thread> work_thread(new std::thread(delegate));
     threads.push_back(work_thread);
+    // Detach each thread. Or the destructor of std::thread would
+    // call std::terminate().
+    work_thread->detach();
   }
 }
 
@@ -28,7 +28,7 @@ void ThreadPool::Run() {
     while (work_queue_.size() == 0) {
       cond_var_.wait(lock);
     }
-    std::unique_ptr<Work> work(work_queue_.front());
+    std::shared_ptr<Work> work(work_queue_.front());
     work_queue_.pop();
     lock.unlock();
 
@@ -38,9 +38,10 @@ void ThreadPool::Run() {
 
 ThreadPool::ThreadPool(const int core_size, const int queue_size)
     : work_queue_(), mutex_(), cond_var_(), core_size_(core_size), queue_size_(queue_size) {
+  threads.resize(core_size_);
 }
 
-bool ThreadPool::AddWork(Work *work) {
+bool ThreadPool::AddWork(std::shared_ptr<Work> work) {
   bool result = true;
 
   mutex_.lock();
@@ -54,3 +55,6 @@ bool ThreadPool::AddWork(Work *work) {
 
   return result;
 }
+
+}  // namespace threading
+}  // namespace utils
