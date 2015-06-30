@@ -16,12 +16,13 @@ Delegate::~Delegate() {
   // have the ownership of *work_.
 }
 
-void Delegate::operator()() {
+void Delegate::Run() {
   work_->Run();
 }
 
 Delegate::Delegate(const Delegate &other)
     : work_(other.work_) {
+
 }
 
 }  // namespace threading

@@ -18,7 +18,7 @@ namespace threading {
 
 class ThreadPool : public Work {
  public:
-  ThreadPool(const int core_size, const int queue_size);
+  ThreadPool(const size_t core_size, const size_t queue_size);
 
   ~ThreadPool();
 
@@ -29,15 +29,15 @@ class ThreadPool : public Work {
   bool AddWork(std::shared_ptr<Work> work);
 
  private:
+  std::vector<std::thread> threads_;
   std::mutex mutex_;
   std::condition_variable cond_var_;
   std::queue<std::shared_ptr<Work>> work_queue_;
-  const int core_size_;
-  const int queue_size_;
-  std::vector<std::shared_ptr<std::thread>>threads;
+  const size_t core_size_;
+  const size_t queue_size_;
 };
 
 }  // namespace threading
 }  // namespace utils
 
-#endif //UTILS_THREADING_THREADPOOL_THREAD_POOL_H_
+#endif // UTILS_THREADING_THREADPOOL_THREAD_POOL_H_

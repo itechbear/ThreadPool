@@ -12,14 +12,17 @@
 namespace utils {
 namespace threading {
 
-class Delegate {
+class Delegate
+    : public Work {
  public:
   explicit Delegate(Work *work);
+
   explicit Delegate(const Delegate &other);
 
   virtual ~Delegate();
 
-  void operator()();
+  virtual void Run();
+
  private:
   Work *work_;
 };
@@ -27,4 +30,4 @@ class Delegate {
 }  // namespace threading
 }  // namespace utils
 
-#endif //UTILS_THREADING_THREADPOOL_DELEGATE_H_
+#endif // UTILS_THREADING_THREADPOOL_DELEGATE_H_

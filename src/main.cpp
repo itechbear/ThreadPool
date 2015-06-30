@@ -20,16 +20,20 @@ class Worker : public Work {
 int main() {
   std::unique_ptr<ThreadPool> thread_pool(new ThreadPool(5, 10));
   thread_pool->Start();
+  std::vector<std::shared_ptr<Worker>> workers;
 
-  for (int i = 0; i < 13; ++i) {
+  for (int i = 0; i < 200; ++i) {
     std::shared_ptr<Worker> worker(new Worker(i));
     if (!thread_pool->AddWork(worker)) {
-      std::cout << "Failed to add a new worker!" << std::endl;
+      // std::cout << i << " : Failed to add a new worker!" << std::endl;
+    } else {
+      workers.push_back(worker);
     }
   }
 
-  // Wait some time until all works are done.
-  std::this_thread::sleep_for (std::chrono::seconds(1));
+  for (auto worker : workers) {
+    worker.get()->Wait();
+  }
 
   // Don't worray about pending threads. They will be cancelled
   // and destroyed once thread_pool goes out of scope.
