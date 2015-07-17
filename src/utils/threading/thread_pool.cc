@@ -76,6 +76,9 @@ void ThreadPool::WaitUntilAllThreadsFinish() {
   }
   threads_.clear();
   delegates_.clear();
+  while (!work_queue_.empty()) {
+    work_queue_.pop();
+  }
 }
 
 }  // namespace threading
