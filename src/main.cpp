@@ -1,5 +1,7 @@
 #include <iostream>
 
+#include <google/heap-profiler.h>
+
 #include "utils/threading/thread_pool.h"
 
 using namespace std;
@@ -10,7 +12,11 @@ class Worker : public Work {
   Worker(int index) : index_(index) {};
 
   void Run() {
-    std::cout << "index: " << index_ << std::endl;
+    // std::cout << "index: " << index_ << std::endl;
+  }
+
+  ~Worker() {
+    std::cout << "destructed!" << std::endl;
   }
 
  private:
@@ -19,21 +25,25 @@ class Worker : public Work {
 
 int main() {
   std::unique_ptr<ThreadPool> thread_pool(new ThreadPool(5, 10));
+
+  HeapProfilerStart("thread_pool");
+
   thread_pool->Start();
-  std::vector<std::shared_ptr<Worker>> workers;
 
-  for (int i = 0; i < 200; ++i) {
+  for (int i = 0; i < 20; ++i) {
     std::shared_ptr<Worker> worker(new Worker(i));
-    if (!thread_pool->AddWork(worker)) {
+    if (!thread_pool->AddWork(worker, true)) {
       // std::cout << i << " : Failed to add a new worker!" << std::endl;
-    } else {
-      workers.push_back(worker);
     }
+    std::cout << "finished!" << std::endl;
+    // worker->Wait(); // wait until this worker finishes, synchronously.
   }
 
-  for (auto worker : workers) {
-    worker.get()->Wait();
-  }
+  thread_pool->WaitUntilAllThreadsFinish();
+
+  std::cout << "all are finished!" << std::endl;
+
+  HeapProfilerStop();
 
   // Don't worray about pending threads. They will be cancelled
   // and destroyed once thread_pool goes out of scope.

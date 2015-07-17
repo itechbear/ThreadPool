@@ -24,12 +24,16 @@ class ThreadPool : public Work {
 
   void Start();
 
+  void WaitUntilAllThreadsFinish();
+
   void Run() override;
 
-  bool AddWork(std::shared_ptr<Work> work);
+  bool AddWork(std::shared_ptr<Work> work,
+               bool check_queue = true);
 
  private:
-  std::vector<std::thread> threads_;
+  std::vector<std::shared_ptr<Delegate>> delegates_;
+  std::vector<std::shared_ptr<std::thread>> threads_;
   std::mutex mutex_;
   std::condition_variable cond_var_;
   std::queue<std::shared_ptr<Work>> work_queue_;
